@@ -1,0 +1,85 @@
+begin: data;
+problem: initial value;
+end: data;
+
+begin: initial value;
+initial time: 0.;
+final time: 1.;
+time step: 1.e-3;
+max iterations: 10;
+tolerance: 1.e-5;
+end: initial value;
+
+begin: control data;
+structural nodes: 3;
+rigid bodies: 1;
+joints: 2;
+beams: 1;
+forces: 1;
+end: control data;
+
+#setting variables
+set: real m = 1.;
+set: real j = 1.e-2;
+set: real L = .5;
+
+
+begin: nodes;
+structural: 1, static,
+null,
+eye,
+null,
+null;
+structural: 2, dynamic,
+L/2., 0., 0.,
+eye,
+null,
+null;
+structural: 3, dynamic,
+L, 0., 0.,
+eye,
+null,
+null;
+end: nodes;
+
+
+
+begin: elements;
+	joint: 1, clamp, 1, node, node;
+    joint: 3, clamp, 3,node,node;
+
+	body: 2, 2,
+		(L/2.)*m,
+		null,
+		diag, (L/2.)*j, 1./12.*(L/2.)^3*m, 1./12.*(L/2.)^3*m;
+
+	
+
+	beam: 1,
+		1, null,
+		2, null,
+		3, null,
+		eye,
+		linear elastic generic,
+			diag, 1.e9, 1.e9, 1.e9, 1.e4, 1.e4, 1.e5,
+		same,
+		same;
+
+    set: real initial_time = 0.;
+	set: real frequency = 10./pi; # radians
+	set: real amplitude = 100.;
+	set: real initial_value = 0.;
+	
+    # absolute force  with different amplification factors
+	force: 2, absolute, 
+		2,
+		position, null,
+		0., 0., 1.,
+		array, 2,
+			sine, initial_time, frequency, amplitude, 
+				forever, initial_value,
+			cosine, initial_time+.1, frequency/2., amplitude, 
+				half, initial_value;
+end: elements;
+
+
